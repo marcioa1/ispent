@@ -36,6 +36,16 @@ defmodule Ispent.CategoryTest do
     refute Category.has_parent?(root.id)
   end
 
+  test "a category cannot have itself as a parent" do
+    user = user_fixture()
+    category = insert_category(user.id, "Food")
+
+    changeset = Category.changeset(category, %{parent_id: category.id})
+    assert "cannot be the same as the category's own ID" in errors_on(changeset).parent_id
+
+    refute Category.changeset(category, %{parent_id: category.id}).valid?
+  end
+
   test "a category cannot have a parent and subcategories at the same time" do
     user = user_fixture()
     root = insert_category(user.id, "Food")
@@ -59,6 +69,7 @@ defmodule Ispent.CategoryTest do
     assert "cannot have a parent and subcategories at the same time" in errors_on(root_changeset).parent_id
 
     assert Category.changeset(root, %{name: "Meals"}).valid?
+    assert Category.changeset(child, %{parent_id: other_root.id}).valid?
   end
 
   defp insert_category(user_id, name, parent_id \\ nil) do
