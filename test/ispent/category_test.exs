@@ -23,4 +23,47 @@ defmodule Ispent.CategoryTest do
     assert {:ok, _category1} = %Category{} |> Category.changeset(attrs1) |> Repo.insert()
     assert {:ok, _category2} = %Category{} |> Category.changeset(attrs2) |> Repo.insert()
   end
+
+  test "is_parent? reports whether a category has subcategories" do
+    user = user_fixture()
+    root = insert_category(user.id, "Food")
+    child = insert_category(user.id, "Fruit", root.id)
+    leaf = insert_category(user.id, "Drinks")
+
+    assert Category.is_parent?(root.id)
+    refute Category.is_parent?(leaf.id)
+    assert Category.has_parent?(child.id)
+    refute Category.has_parent?(root.id)
+  end
+
+  test "a category cannot have a parent and subcategories at the same time" do
+    user = user_fixture()
+    root = insert_category(user.id, "Food")
+    child = insert_category(user.id, "Fruit", root.id)
+    other_root = insert_category(user.id, "Drinks")
+
+    grandchild_changeset =
+      Category.changeset(%Category{}, %{
+        name: "Citrus",
+        icon: "category",
+        user_id: user.id,
+        parent_id: child.id
+      })
+
+    assert "cannot have a parent and subcategories at the same time" in errors_on(
+             grandchild_changeset
+           ).parent_id
+
+    root_changeset = Category.changeset(root, %{parent_id: other_root.id})
+
+    assert "cannot have a parent and subcategories at the same time" in errors_on(root_changeset).parent_id
+
+    assert Category.changeset(root, %{name: "Meals"}).valid?
+  end
+
+  defp insert_category(user_id, name, parent_id \\ nil) do
+    %Category{}
+    |> Category.changeset(%{name: name, icon: "category", user_id: user_id, parent_id: parent_id})
+    |> Repo.insert!()
+  end
 end
