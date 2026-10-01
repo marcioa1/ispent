@@ -19,7 +19,19 @@ defmodule Ispent.Category do
     |> validate_required([:name, :icon, :user_id])
     |> foreign_key_constraint(:user_id)
     |> foreign_key_constraint(:parent_id)
-    |> unsafe_validate_unique([:user_id, :name], Ispent.Repo)
-    |> unique_constraint([:user_id, :name])
+    |> unsafe_validate_unique([:name, :user_id], Ispent.Repo)
+    |> unique_constraint([:name, :user_id], name: :unique_category_name_user)
+    |> validate_parent_id_is_not_self()
+  end
+
+  defp validate_parent_id_is_not_self(changeset) do
+    parent_id = get_field(changeset, :parent_id)
+    category_id = get_field(changeset, :id)
+
+    if parent_id && category_id && parent_id == category_id do
+      add_error(changeset, :parent_id, "cannot be the same as the category's own ID")
+    else
+      changeset
+    end
   end
 end

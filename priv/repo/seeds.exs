@@ -16,10 +16,13 @@ alias Ispent.Accounts
 
 case Accounts.get_user_by_email("marcio@test.com") do
   nil ->
-    {:ok, _user} = Accounts.register_user(%{
-      email: "marcio@test.com",
-      password: "12345" # <-- Set your desired default password here
-    })
+    {:ok, _user} =
+      Accounts.register_user(%{
+        email: "marcio@test.com",
+        # <-- Set your desired default password here
+        password: "12345"
+      })
+
     IO.puts("Admin user created successfully.")
 
   _user ->
