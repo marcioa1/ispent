@@ -1,4 +1,4 @@
-defmodule IspentWeb.Router do
+  defmodule IspentWeb.Router do
   use IspentWeb, :router
 
   import IspentWeb.UserAuth
@@ -17,16 +17,28 @@ defmodule IspentWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_authenticated do
+    plug IspentWeb.ApiAuthentication
+  end
+
   scope "/", IspentWeb do
     pipe_through :browser
 
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", IspentWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", IspentWeb do
+    pipe_through :api
+
+    post "/auth/login", ApiAuthController, :create
+  end
+
+  scope "/api", IspentWeb do
+    pipe_through [:api, :api_authenticated]
+
+    get "/auth/me", ApiAuthController, :show
+    delete "/auth/logout", ApiAuthController, :delete
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:ispent, :dev_routes) do

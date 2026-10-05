@@ -11,6 +11,7 @@ defmodule Ispent.Accounts.UserToken do
   @magic_link_validity_in_minutes 15
   @change_email_validity_in_days 7
   @session_validity_in_days 14
+  @api_token_validity_in_days 14
 
   schema "users_tokens" do
     field :token, :binary
@@ -45,6 +46,32 @@ defmodule Ispent.Accounts.UserToken do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
     {token, %UserToken{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
+  end
+
+  def build_api_token(user) do
+    token = :crypto.strong_rand_bytes(@rand_size)
+    hashed_token = :crypto.hash(@hash_algorithm, token)
+
+    {Base.url_encode64(token, padding: false),
+     %UserToken{token: hashed_token, context: "api", user_id: user.id}}
+  end
+
+  def verify_api_token_query(encoded_token) do
+    with {:ok, hashed_token} <- api_token_hash(encoded_token) do
+      query =
+        from token in by_token_and_context_query(hashed_token, "api"),
+          join: user in assoc(token, :user),
+          where: token.inserted_at > ago(@api_token_validity_in_days, "day"),
+          select: user
+
+      {:ok, query}
+    end
+  end
+
+  def api_token_hash(encoded_token) do
+    with {:ok, token} <- Base.url_decode64(encoded_token, padding: false) do
+      {:ok, :crypto.hash(@hash_algorithm, token)}
+    end
   end
 
   @doc """

@@ -188,6 +188,33 @@ defmodule Ispent.Accounts do
     Repo.one(query)
   end
 
+  def generate_user_api_token(user) do
+    {token, user_token} = UserToken.build_api_token(user)
+    Repo.insert!(user_token)
+    token
+  end
+
+  def get_user_by_api_token(token) do
+    with {:ok, query} <- UserToken.verify_api_token_query(token),
+         %User{} = user <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  def delete_user_api_token(token) do
+    case UserToken.api_token_hash(token) do
+      {:ok, hashed_token} ->
+        Repo.delete_all(from UserToken, where: [token: ^hashed_token, context: "api"])
+
+      :error ->
+        :ok
+    end
+
+    :ok
+  end
+
   @doc """
   Gets the user with the given magic link token.
   """
