@@ -6,6 +6,7 @@ defmodule Ispent.Category do
   schema "categories" do
     field :name, :string
     field :icon, :string
+    field :is_active, :boolean, default: true
     belongs_to :user, Ispent.Accounts.User
     belongs_to :parent, Ispent.Category, foreign_key: :parent_id
     has_many :subcategories, Ispent.Category, foreign_key: :parent_id
@@ -16,7 +17,7 @@ defmodule Ispent.Category do
   @doc false
   def changeset(category, attrs) do
     category
-    |> cast(attrs, [:name, :icon, :user_id, :parent_id])
+    |> cast(attrs, [:name, :icon, :is_active, :user_id, :parent_id])
     |> validate_required([:name, :icon, :user_id])
     |> foreign_key_constraint(:user_id)
     |> foreign_key_constraint(:parent_id)
@@ -30,6 +31,13 @@ defmodule Ispent.Category do
     Ispent.Repo.all(
       from category in __MODULE__,
         where: category.user_id == ^user_id
+    )
+  end
+
+  def get_active_by_user(user_id) do
+    Ispent.Repo.all(
+      from category in __MODULE__,
+        where: category.user_id == ^user_id and category.is_active
     )
   end
 

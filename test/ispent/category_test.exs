@@ -36,6 +36,25 @@ defmodule Ispent.CategoryTest do
     assert Enum.sort(Enum.map(categories, & &1.id)) == Enum.sort([category1.id, category2.id])
   end
 
+  test "get_active_by_user returns only active categories belonging to the user" do
+    user1 = user_fixture()
+    user2 = user_fixture()
+    active_category = insert_category(user1.id, "Food")
+
+    inactive_category =
+      user1.id
+      |> insert_category("Transport")
+      |> Category.changeset(%{is_active: false})
+      |> Repo.update!()
+
+    insert_category(user2.id, "Books")
+
+    categories = Category.get_active_by_user(user1.id)
+
+    assert Enum.map(categories, & &1.id) == [active_category.id]
+    refute inactive_category.id in Enum.map(categories, & &1.id)
+  end
+
   test "is_parent? reports whether a category has subcategories" do
     user = user_fixture()
     root = insert_category(user.id, "Food")
