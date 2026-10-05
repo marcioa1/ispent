@@ -26,6 +26,13 @@ defmodule Ispent.Category do
     |> validate_parent_and_child_exclusivity()
   end
 
+  def get_all_by_user(user_id) do
+    Ispent.Repo.all(
+      from category in __MODULE__,
+        where: category.user_id == ^user_id
+    )
+  end
+
   def is_parent?(category_id) do
     Ispent.Repo.exists?(
       from category in __MODULE__,

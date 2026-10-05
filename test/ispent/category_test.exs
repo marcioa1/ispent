@@ -24,6 +24,18 @@ defmodule Ispent.CategoryTest do
     assert {:ok, _category2} = %Category{} |> Category.changeset(attrs2) |> Repo.insert()
   end
 
+  test "get_all_by_user returns only the user's categories" do
+    user1 = user_fixture()
+    user2 = user_fixture()
+    category1 = insert_category(user1.id, "Food")
+    category2 = insert_category(user1.id, "Transport")
+    insert_category(user2.id, "Books")
+
+    categories = Category.get_all_by_user(user1.id)
+
+    assert Enum.sort(Enum.map(categories, & &1.id)) == Enum.sort([category1.id, category2.id])
+  end
+
   test "is_parent? reports whether a category has subcategories" do
     user = user_fixture()
     root = insert_category(user.id, "Food")
