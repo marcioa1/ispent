@@ -10,6 +10,28 @@ defmodule Ispent.Tasks do
   """
   @spec print_message(String.t()) :: :ok
   def print_message(message) when is_binary(message) do
-    IO.puts(message)
+    IO.puts("message")
+  end
+
+  def create_user(email, password) do
+    alias Ispent.Accounts
+    alias Ispent.Repo
+
+    Repo.delete_all(Ispent.Accounts.UserToken)
+    # Repo.delete_all(Ispent.Accounts.User)
+
+    case Accounts.get_user_by_email(email) do
+      nil ->
+        {:ok, _user} =
+          Accounts.register_user(%{
+            "email" => email,
+            "password" => password
+          })
+
+        IO.puts("User #{email} created successfully.")
+
+      _user ->
+        IO.puts("User #{email} already exists. Skipping.")
+    end
   end
 end
