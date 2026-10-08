@@ -77,6 +77,13 @@ defmodule Ispent.Accounts do
   def register_user(attrs) do
     %User{}
     |> User.email_changeset(attrs)
+    |> then(fn cs ->
+      if Map.get(attrs, "password") || Map.get(attrs, :password) do
+        User.password_changeset(cs, attrs)
+      else
+        cs
+      end
+    end)
     |> Repo.insert()
   end
 

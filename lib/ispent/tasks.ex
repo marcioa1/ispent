@@ -18,7 +18,7 @@ defmodule Ispent.Tasks do
     alias Ispent.Repo
 
     Repo.delete_all(Ispent.Accounts.UserToken)
-    # Repo.delete_all(Ispent.Accounts.User)
+    Repo.delete_all(Ispent.Accounts.User)
 
     case Accounts.get_user_by_email(email) do
       nil ->

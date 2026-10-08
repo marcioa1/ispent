@@ -35,3 +35,10 @@ ispent-*.tar
 npm-debug.log
 /assets/node_modules/
 
+.postman/
+postman/
+
+# ElixirLS language server folder
+.elixir_ls/
+/.elixir_ls/
+.elixir_ls/build
