@@ -35,6 +35,32 @@ defmodule IspentWeb.ApiCategoryControllerTest do
     assert Repo.get!(Category, id).user_id == user.id
   end
 
+  test "accepts mobile camelCase category attributes", %{conn: conn} do
+    user = user_fixture()
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> post(~p"/api/categories", %{
+        "category" => %{
+          "name" => "Archived",
+          "categoryIcon" => "archive",
+          "isActive" => false,
+          "parentID" => nil
+        }
+      })
+
+    assert %{
+             "category" => %{
+               "name" => "Archived",
+               "icon" => "archive",
+               "is_active" => false,
+               "parent_id" => nil
+             }
+           } = json_response(conn, 201)
+  end
+
   test "returns validation errors for invalid category attributes", %{conn: conn} do
     user = user_fixture()
     token = Accounts.generate_user_api_token(user)

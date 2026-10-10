@@ -6,6 +6,7 @@ defmodule IspentWeb.ApiCategoryController do
 
   def create(conn, %{"category" => attrs}) when is_map(attrs) do
     scope = conn.assigns.current_scope
+    attrs = normalize_category_attrs(attrs)
 
     case Categories.create_category(scope, attrs) do
       {:ok, category} ->
@@ -39,5 +40,24 @@ defmodule IspentWeb.ApiCategoryController do
       inserted_at: category.inserted_at,
       updated_at: category.updated_at
     }
+  end
+
+  defp normalize_category_attrs(attrs) do
+    attrs
+    |> rename_attribute("categoryIcon", "icon")
+    |> rename_attribute("isActive", "is_active")
+    |> rename_attribute("parentID", "parent_id")
+  end
+
+  defp rename_attribute(attrs, external_name, internal_name) do
+    if Map.has_key?(attrs, external_name) do
+      value = Map.fetch!(attrs, external_name)
+
+      attrs
+      |> Map.delete(external_name)
+      |> Map.put_new(internal_name, value)
+    else
+      attrs
+    end
   end
 end
