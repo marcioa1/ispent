@@ -38,6 +38,7 @@ defmodule IspentWeb.Router do
 
     get "/auth/me", ApiAuthController, :show
     delete "/auth/logout", ApiAuthController, :delete
+    post "/categories", ApiCategoryController, :create
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
