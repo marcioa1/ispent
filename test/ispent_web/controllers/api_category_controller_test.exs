@@ -130,6 +130,71 @@ defmodule IspentWeb.ApiCategoryControllerTest do
              json_response(conn, 422)
   end
 
+  test "updates a category owned by the authenticated user", %{conn: conn} do
+    user = user_fixture()
+    category = insert_category(user.id, "Food")
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/categories/#{category.id}", %{
+        "category" => %{
+          "name" => "Meals",
+          "icon" => "utensils",
+          "user_id" => user.id + 1
+        }
+      })
+
+    assert %{"category" => %{"id" => id, "name" => "Meals", "icon" => "utensils"}} =
+             json_response(conn, 200)
+
+    assert id == category.id
+    assert Repo.get!(Category, category.id).user_id == user.id
+  end
+
+  test "cannot update another user's category", %{conn: conn} do
+    user = user_fixture()
+    other_user = user_fixture()
+    category = insert_category(other_user.id, "Food")
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/categories/#{category.id}", %{
+        "category" => %{"name" => "Meals", "icon" => "utensils"}
+      })
+
+    assert json_response(conn, 404) == %{"error" => "category_not_found"}
+    assert Repo.get!(Category, category.id).name == "Food"
+  end
+
+  test "rejects an invalid category ID when updating", %{conn: conn} do
+    user = user_fixture()
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/categories/not-an-id", %{"category" => %{"name" => "Meals"}})
+
+    assert json_response(conn, 400) == %{"error" => "invalid_category_id"}
+  end
+
+  test "returns validation errors for invalid updates", %{conn: conn} do
+    user = user_fixture()
+    category = insert_category(user.id, "Food")
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/categories/#{category.id}", %{"category" => %{"name" => ""}})
+
+    assert %{"errors" => %{"name" => [_]}} = json_response(conn, 422)
+  end
+
   test "requires authentication", %{conn: conn} do
     conn = post(conn, ~p"/api/categories", %{"category" => %{"name" => "Food", "icon" => "food"}})
 
@@ -146,6 +211,53 @@ defmodule IspentWeb.ApiCategoryControllerTest do
       |> post(~p"/api/categories", %{})
 
     assert json_response(conn, 400) == %{"error" => "category_required"}
+  end
+
+  test "deletes a category owned by the authenticated user", %{conn: conn} do
+    user = user_fixture()
+    category = insert_category(user.id, "Food")
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> delete(~p"/api/categories/#{category.id}")
+
+    assert response(conn, 204) == ""
+    assert Repo.get(Category, category.id) == nil
+  end
+
+  test "cannot delete another user's category", %{conn: conn} do
+    user = user_fixture()
+    other_user = user_fixture()
+    category = insert_category(other_user.id, "Food")
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> delete(~p"/api/categories/#{category.id}")
+
+    assert json_response(conn, 404) == %{"error" => "category_not_found"}
+    assert Repo.get(Category, category.id)
+  end
+
+  test "rejects an invalid category ID", %{conn: conn} do
+    user = user_fixture()
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> delete(~p"/api/categories/not-an-id")
+
+    assert json_response(conn, 400) == %{"error" => "invalid_category_id"}
+  end
+
+  test "requires authentication to delete a category", %{conn: conn} do
+    conn = delete(conn, ~p"/api/categories/1")
+
+    assert json_response(conn, 401) == %{"error" => "unauthorized"}
   end
 
   defp insert_category(user_id, name) do

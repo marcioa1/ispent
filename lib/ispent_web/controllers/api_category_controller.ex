@@ -39,6 +39,76 @@ defmodule IspentWeb.ApiCategoryController do
     |> json(%{error: "category_required"})
   end
 
+  def update(conn, %{"id" => id, "category" => attrs}) when is_map(attrs) do
+    case Integer.parse(id) do
+      {category_id, ""} ->
+        attrs = normalize_category_attrs(attrs)
+
+        case Categories.update_category(conn.assigns.current_scope, category_id, attrs) do
+          {:ok, category} ->
+            json(conn, %{category: category_json(category)})
+
+          {:error, :not_found} ->
+            conn
+            |> put_status(:not_found)
+            |> json(%{error: "category_not_found"})
+
+          {:error, changeset} ->
+            errors =
+              Ecto.Changeset.traverse_errors(changeset, &CoreComponents.translate_error/1)
+
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: errors})
+        end
+
+      _ ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "invalid_category_id"})
+    end
+  end
+
+  def update(conn, _params) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{error: "category_required"})
+  end
+
+  def delete(conn, %{"id" => id}) do
+    case Integer.parse(id) do
+      {category_id, ""} ->
+        case Categories.delete_category(conn.assigns.current_scope, category_id) do
+          {:ok, _category} ->
+            send_resp(conn, :no_content, "")
+
+          {:error, :not_found} ->
+            conn
+            |> put_status(:not_found)
+            |> json(%{error: "category_not_found"})
+
+          {:error, changeset} ->
+            errors =
+              Ecto.Changeset.traverse_errors(changeset, &CoreComponents.translate_error/1)
+
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: errors})
+        end
+
+      _ ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "invalid_category_id"})
+    end
+  end
+
+  def delete(conn, _params) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{error: "category_id_required"})
+  end
+
   defp category_json(category) do
     %{
       id: category.id,

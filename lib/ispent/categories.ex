@@ -31,6 +31,40 @@ defmodule Ispent.Categories do
     Repo.insert(changeset)
   end
 
+  @doc """
+  Updates a category owned by the user in the given scope.
+  """
+  def update_category(%Scope{user: user}, category_id, attrs)
+      when is_integer(category_id) and is_map(attrs) do
+    case Repo.get_by(Category, id: category_id, user_id: user.id) do
+      nil ->
+        {:error, :not_found}
+
+      category ->
+        attrs =
+          attrs
+          |> Map.new(fn {key, value} -> {to_string(key), value} end)
+          |> Map.drop(["user_id"])
+
+        changeset =
+          category
+          |> Category.changeset(attrs)
+          |> validate_parent_ownership(user.id)
+
+        Repo.update(changeset)
+    end
+  end
+
+  @doc """
+  Deletes a category owned by the user in the given scope.
+  """
+  def delete_category(%Scope{user: user}, category_id) do
+    case Repo.get_by(Category, id: category_id, user_id: user.id) do
+      nil -> {:error, :not_found}
+      category -> Repo.delete(category)
+    end
+  end
+
   defp validate_parent_ownership(changeset, user_id) do
     case Ecto.Changeset.get_field(changeset, :parent_id) do
       nil ->
