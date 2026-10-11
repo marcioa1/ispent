@@ -10,7 +10,7 @@ defmodule Ispent.Tasks do
   """
   @spec print_message(String.t()) :: :ok
   def print_message(message) when is_binary(message) do
-    IO.puts("message")
+    IO.puts(message)
   end
 
   def create_user(email, password) do
