@@ -38,6 +38,7 @@ defmodule IspentWeb.Router do
 
     get "/auth/me", ApiAuthController, :show
     delete "/auth/logout", ApiAuthController, :delete
+    get "/categories", ApiCategoryController, :index
     post "/categories", ApiCategoryController, :create
   end
 

@@ -8,6 +8,13 @@ defmodule Ispent.Categories do
   alias Ispent.Repo
 
   @doc """
+  Lists the categories owned by the user in the given scope.
+  """
+  def list_categories(%Scope{user: user}) do
+    Category.get_all_by_user(user.id)
+  end
+
+  @doc """
   Creates a category owned by the user in the given scope.
   """
   def create_category(%Scope{user: user}, attrs) when is_map(attrs) do

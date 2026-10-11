@@ -7,6 +7,42 @@ defmodule IspentWeb.ApiCategoryControllerTest do
   alias Ispent.Category
   alias Ispent.Repo
 
+  test "lists only the authenticated user's categories", %{conn: conn} do
+    user = user_fixture()
+    other_user = user_fixture()
+    user_category = insert_category(user.id, "Food")
+    insert_category(other_user.id, "Transport")
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/categories")
+
+    assert %{"categories" => [%{"id" => id, "name" => "Food", "icon" => "category"}]} =
+             json_response(conn, 200)
+
+    assert id == user_category.id
+  end
+
+  test "returns an empty list when the authenticated user has no categories", %{conn: conn} do
+    user = user_fixture()
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/categories")
+
+    assert json_response(conn, 200) == %{"categories" => []}
+  end
+
+  test "requires authentication to list categories", %{conn: conn} do
+    conn = get(conn, ~p"/api/categories")
+
+    assert json_response(conn, 401) == %{"error" => "unauthorized"}
+  end
+
   test "creates a category for the authenticated user", %{conn: conn} do
     user = user_fixture()
     token = Accounts.generate_user_api_token(user)

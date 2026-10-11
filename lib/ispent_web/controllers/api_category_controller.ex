@@ -4,6 +4,15 @@ defmodule IspentWeb.ApiCategoryController do
   alias Ispent.Categories
   alias IspentWeb.CoreComponents
 
+  def index(conn, _params) do
+    categories =
+      conn.assigns.current_scope
+      |> Categories.list_categories()
+      |> Enum.map(&category_json/1)
+
+    json(conn, %{categories: categories})
+  end
+
   def create(conn, %{"category" => attrs}) when is_map(attrs) do
     scope = conn.assigns.current_scope
     attrs = normalize_category_attrs(attrs)
@@ -45,6 +54,7 @@ defmodule IspentWeb.ApiCategoryController do
   defp normalize_category_attrs(attrs) do
     attrs
     |> rename_attribute("categoryIcon", "icon")
+    |> rename_attribute("category_icon", "icon")
     |> rename_attribute("isActive", "is_active")
     |> rename_attribute("parentID", "parent_id")
   end
