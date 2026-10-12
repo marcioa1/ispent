@@ -39,6 +39,27 @@ defmodule Ispent.ExpenseTest do
     assert expense.extraordinary
   end
 
+  test "defaults extraordinary to false when omitted" do
+    user = user_fixture()
+
+    {:ok, category} =
+      %Category{}
+      |> Category.changeset(%{name: "Food", icon: "food", user_id: user.id})
+      |> Repo.insert()
+
+    assert {:ok, expense} =
+             %Expense{}
+             |> Expense.changeset(%{
+               category_id: category.id,
+               details: "Lunch",
+               value: 12.5,
+               datetime: ~D[2026-10-12]
+             })
+             |> Repo.insert()
+
+    refute expense.extraordinary
+  end
+
   test "requires category, details, value, and date" do
     changeset = Expense.changeset(%Expense{}, %{})
 
