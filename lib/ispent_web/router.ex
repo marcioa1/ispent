@@ -38,10 +38,7 @@ defmodule IspentWeb.Router do
 
     get "/auth/me", ApiAuthController, :show
     delete "/auth/logout", ApiAuthController, :delete
-    get "/categories", ApiCategoryController, :index
-    post "/categories", ApiCategoryController, :create
-    put "/categories/:id", ApiCategoryController, :update
-    delete "/categories/:id", ApiCategoryController, :delete
+    resources "/categories", ApiCategoryController, only: [:index, :create, :update, :delete]
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
