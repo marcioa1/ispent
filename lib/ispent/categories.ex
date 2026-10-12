@@ -3,8 +3,11 @@ defmodule Ispent.Categories do
   The Categories context.
   """
 
+  import Ecto.Query
+
   alias Ispent.Accounts.Scope
   alias Ispent.Category
+  alias Ispent.Expense
   alias Ispent.Repo
 
   @doc """
@@ -60,8 +63,21 @@ defmodule Ispent.Categories do
   """
   def delete_category(%Scope{user: user}, category_id) do
     case Repo.get_by(Category, id: category_id, user_id: user.id) do
-      nil -> {:error, :not_found}
-      category -> Repo.delete(category)
+      nil ->
+        {:error, :not_found}
+
+      category ->
+        if Repo.exists?(from expense in Expense, where: expense.category_id == ^category.id) do
+          case category |> Category.changeset(%{is_active: false}) |> Repo.update() do
+            {:ok, category} -> {:ok, category, :deactivated}
+            error -> error
+          end
+        else
+          case Repo.delete(category) do
+            {:ok, category} -> {:ok, category, :deleted}
+            error -> error
+          end
+        end
     end
   end
 

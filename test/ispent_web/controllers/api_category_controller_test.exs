@@ -5,6 +5,7 @@ defmodule IspentWeb.ApiCategoryControllerTest do
 
   alias Ispent.Accounts
   alias Ispent.Category
+  alias Ispent.Expense
   alias Ispent.Repo
 
   test "lists only the authenticated user's categories", %{conn: conn} do
@@ -225,6 +226,31 @@ defmodule IspentWeb.ApiCategoryControllerTest do
 
     assert response(conn, 204) == ""
     assert Repo.get(Category, category.id) == nil
+  end
+
+  test "deactivates a category that has an expense", %{conn: conn} do
+    user = user_fixture()
+    category = insert_category(user.id, "Food")
+
+    %Expense{}
+    |> Expense.changeset(%{
+      category_id: category.id,
+      details: "Lunch",
+      value: 12.5,
+      datetime: ~D[2026-10-12]
+    })
+    |> Repo.insert!()
+
+    token = Accounts.generate_user_api_token(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> delete(~p"/api/categories/#{category.id}")
+
+    assert %{"category" => %{"id" => id, "is_active" => false}} = json_response(conn, 200)
+    assert id == category.id
+    assert Repo.get!(Category, category.id).is_active == false
   end
 
   test "cannot delete another user's category", %{conn: conn} do

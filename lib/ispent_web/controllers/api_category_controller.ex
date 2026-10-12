@@ -79,8 +79,11 @@ defmodule IspentWeb.ApiCategoryController do
     case Integer.parse(id) do
       {category_id, ""} ->
         case Categories.delete_category(conn.assigns.current_scope, category_id) do
-          {:ok, _category} ->
+          {:ok, _category, :deleted} ->
             send_resp(conn, :no_content, "")
+
+          {:ok, category, :deactivated} ->
+            json(conn, %{category: category_json(category)})
 
           {:error, :not_found} ->
             conn

@@ -10,6 +10,7 @@ defmodule Ispent.Category do
     belongs_to :user, Ispent.Accounts.User
     belongs_to :parent, Ispent.Category, foreign_key: :parent_id
     has_many :subcategories, Ispent.Category, foreign_key: :parent_id
+    has_many :expenses, Ispent.Expense
 
     timestamps()
   end
