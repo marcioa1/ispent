@@ -17,7 +17,7 @@ defmodule Ispent.ExpenseTest do
       category_id: category.id,
       details: "Lunch",
       value: 12.5,
-      datetime: ~D[2026-10-12],
+      datetime: ~U[2026-10-12 13:30:00Z],
       latitude: 38.7223,
       longitude: -9.1393,
       location_name: "Lisbon",
@@ -32,7 +32,7 @@ defmodule Ispent.ExpenseTest do
     assert expense.category_id == category.id
     assert expense.details == "Lunch"
     assert expense.value == 12.5
-    assert expense.datetime == ~D[2026-10-12]
+    assert expense.datetime == ~U[2026-10-12 13:30:00Z]
     assert expense.latitude == 38.7223
     assert expense.longitude == -9.1393
     assert expense.location_name == "Lisbon"
@@ -53,7 +53,7 @@ defmodule Ispent.ExpenseTest do
                category_id: category.id,
                details: "Lunch",
                value: 12.5,
-               datetime: ~D[2026-10-12]
+               datetime: ~U[2026-10-12 13:30:00Z]
              })
              |> Repo.insert()
 

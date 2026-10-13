@@ -39,7 +39,7 @@ defmodule IspentWeb.ApiExpenseControllerTest do
           "categoryID" => category.id,
           "details" => "Lunch",
           "value" => 12.5,
-          "datetime" => "2026-10-12",
+          "datetime" => "2026-10-12T13:30:00Z",
           "latitude" => 38.7223,
           "longitude" => -9.1393,
           "locationName" => "Lisbon"
@@ -52,7 +52,7 @@ defmodule IspentWeb.ApiExpenseControllerTest do
                "category_id" => category_id,
                "details" => "Lunch",
                "value" => 12.5,
-               "datetime" => "2026-10-12",
+               "datetime" => "2026-10-12T13:30:00Z",
                "location_name" => "Lisbon",
                "extraordinary" => false
              }
@@ -76,7 +76,7 @@ defmodule IspentWeb.ApiExpenseControllerTest do
           "category_id" => category.id,
           "details" => "Lunch",
           "value" => 12.5,
-          "datetime" => "2026-10-12"
+          "datetime" => "2026-10-12T13:30:00Z"
         }
       })
 
@@ -166,7 +166,7 @@ defmodule IspentWeb.ApiExpenseControllerTest do
       category_id: category_id,
       details: details,
       value: 12.5,
-      datetime: ~D[2026-10-12]
+      datetime: ~U[2026-10-12 13:30:00Z]
     })
     |> Repo.insert!()
   end

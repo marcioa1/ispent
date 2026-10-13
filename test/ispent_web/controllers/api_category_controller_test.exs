@@ -237,7 +237,7 @@ defmodule IspentWeb.ApiCategoryControllerTest do
       category_id: category.id,
       details: "Lunch",
       value: 12.5,
-      datetime: ~D[2026-10-12]
+      datetime: ~U[2026-10-12 13:30:00Z]
     })
     |> Repo.insert!()
 

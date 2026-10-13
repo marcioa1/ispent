@@ -5,7 +5,7 @@ defmodule Ispent.Expense do
   schema "expenses" do
     field :details, :string
     field :value, :float
-    field :datetime, :date
+    field :datetime, :utc_datetime
     field :latitude, :float
     field :longitude, :float
     field :location_name, :string
